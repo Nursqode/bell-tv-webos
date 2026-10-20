@@ -201,8 +201,8 @@
     for (var i = 0; i < ROWS; i++) {
       var r = document.createElement('div');
       r.className = 'row';
-      r.innerHTML = '<span class="num"></span><span class="fav"></span>' +
-        '<img class="logo" alt=""><span class="nm"></span><span class="grp"></span>';
+      r.innerHTML = '<span class="num"></span><img class="logo" alt="">' +
+        '<span class="nm"></span><span class="fav"></span>';
       listEl.appendChild(r);
       rowsEl.push(r);
     }
@@ -257,12 +257,28 @@
       r.style.visibility = 'visible';
       r.className = 'row' + (state.start + i === state.idx ? ' sel' : '');
       r.children[0].textContent = (state.start + i + 1);
-      r.children[1].textContent = isFav(ch.key) ? '★' : '';
-      setLogo(r.children[2], ch.logo);
-      r.children[3].textContent = ch.name;
-      r.children[4].textContent = ch.group;
+      setLogo(r.children[1], ch.logo);
+      r.children[2].textContent = ch.name;
+      r.children[3].textContent = isFav(ch.key) ? '★' : '';
     }
+    updateScrollbar(list.length);
     renderSources();
+  }
+
+  function updateScrollbar(total) {
+    var bar = document.getElementById('scrollbar');
+    var thumb = document.getElementById('scrollthumb');
+    if (!bar || !thumb) return;
+    if (total <= ROWS) {
+      bar.style.display = 'none';
+      return;
+    }
+    bar.style.display = 'block';
+    var thumbPct = Math.max(8, (ROWS / total) * 100);
+    thumb.style.height = thumbPct.toFixed(2) + '%';
+    var maxStart = total - ROWS;
+    var pos = maxStart > 0 ? state.start / maxStart : 0;
+    thumb.style.top = (pos * (100 - thumbPct)).toFixed(2) + '%';
   }
 
   function switchSrc(d) {
