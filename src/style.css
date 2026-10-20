@@ -73,7 +73,7 @@ body { background: radial-gradient(ellipse at 50% 28%, #0E0E0E 0%, #000 72%); }
 #player { position: fixed; inset: 0; z-index: 50; background: #000; display: none; }
 #player.on { display: block; }
 #video { width: 100%; height: 100%; background: #000; object-fit: contain; }
-#pres { position: absolute; bottom: 10px; right: 32px; color: #A3AFBF; font-size: 26px; opacity: 0.4; }
+#pres { position: absolute; bottom: 10px; right: 32px; color: rgba(163, 175, 191, 0.42); font-size: 26px; }
 #pmsg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
   color: #A3AFBF; font-size: 38px; text-align: center; padding: 50px; }
 #pmsg.err { color: #FF7A72; }
