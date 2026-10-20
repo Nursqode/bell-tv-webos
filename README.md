@@ -75,13 +75,13 @@ Chromium. HLS воспроизводится штатным плеером; пр
 1. Скачайте `.ipk` из раздела **[Releases](../../releases)**.
 2. Скопируйте пакет на телевизор по SSH:
    ```sh
-   scp tv.iptv.web_1.5.0_all.ipk root@192.168.1.50:/tmp/
+   scp tv.iptv.web_1.5.1_all.ipk root@192.168.1.50:/tmp/
    ```
 3. Установите через сервис установки webOS:
    ```sh
    ssh root@192.168.1.50 \
      "luna-send -n 1 -i 'luna://com.webos.appInstallService/dev/install' \
-      '{\"id\":\"com.ares.defaultName\",\"ipkUrl\":\"/tmp/tv.iptv.web_1.5.0_all.ipk\",\"subscribe\":true}'"
+      '{\"id\":\"com.ares.defaultName\",\"ipkUrl\":\"/tmp/tv.iptv.web_1.5.1_all.ipk\",\"subscribe\":true}'"
    ```
 4. Приложение появится в списке приложений (Home → Apps) под именем **Bell.TV**.
 
@@ -95,7 +95,7 @@ Chromium. HLS воспроизводится штатным плеером; пр
    ```sh
    npm install -g @webos-tools/cli
    ares-setup-device            # добавьте ТВ (host, порт 9922, пользователь prisoner)
-   ares-install --device <имя> tv.iptv.web_1.5.0_all.ipk
+   ares-install --device <имя> tv.iptv.web_1.5.1_all.ipk
    ```
 3. Подойдёт и [webOS Dev Manager](https://github.com/webosbrew/dev-manager-desktop):
    добавить устройство → Apps → перетащить `.ipk`.

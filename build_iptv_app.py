@@ -27,7 +27,7 @@ DIST = os.path.join(HERE, "dist")
 APP_ID = "tv.iptv.web"
 APP_TITLE = "Bell.TV"
 APP_VENDOR = "Nursqode"
-VERSION = "1.5.0"
+VERSION = "1.5.1"
 
 
 def parse_m3u(path):
