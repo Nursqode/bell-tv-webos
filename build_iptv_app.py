@@ -27,7 +27,7 @@ DIST = os.path.join(HERE, "dist")
 APP_ID = "tv.iptv.web"
 APP_TITLE = "Bell.TV"
 APP_VENDOR = "Nursqode"
-VERSION = "1.4.0"
+VERSION = "1.5.0"
 
 
 def parse_m3u(path):
@@ -118,6 +118,13 @@ def main():
     hls = os.path.join(DATA, "hls.min.js")
     if os.path.exists(hls):
         shutil.copy(hls, os.path.join(app_dir, "hls.min.js"))
+
+    fonts = os.path.join(HERE, "assets", "fonts")
+    if os.path.isdir(fonts):
+        dst_fonts = os.path.join(app_dir, "fonts")
+        os.makedirs(dst_fonts, exist_ok=True)
+        for fn in os.listdir(fonts):
+            shutil.copy(os.path.join(fonts, fn), os.path.join(dst_fonts, fn))
 
     make_icon(80, os.path.join(app_dir, "icon.png"))
     make_icon(130, os.path.join(app_dir, "largeIcon.png"))
