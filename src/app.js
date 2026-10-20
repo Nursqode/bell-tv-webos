@@ -6,7 +6,6 @@
   var rowsEl = null;
   var player = document.getElementById('player');
   var video = document.getElementById('video');
-  var pchan = document.getElementById('pchan');
   var pres = document.getElementById('pres');
   var pmsg = document.getElementById('pmsg');
   var toastEl = document.getElementById('toast');
@@ -319,7 +318,6 @@
     addRecent(ch);
     state.playing = true;
     player.className = 'on';
-    pchan.textContent = ch.name + (ch.group ? ' · ' + ch.group : '');
     pmsg.className = '';
     pmsg.style.display = 'flex';
     pmsg.innerHTML = '<div id="spin"></div>';

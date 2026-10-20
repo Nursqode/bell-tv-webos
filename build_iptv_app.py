@@ -27,7 +27,7 @@ DIST = os.path.join(HERE, "dist")
 APP_ID = "tv.iptv.web"
 APP_TITLE = "Bell.TV"
 APP_VENDOR = "Nursqode"
-VERSION = "1.3.0"
+VERSION = "1.3.1"
 
 
 def parse_m3u(path):
@@ -78,7 +78,6 @@ def make_icon(size, path):
     if os.path.exists(icon):
         Image.open(icon).convert("RGBA").resize((size, size), Image.LANCZOS).save(path, "PNG")
         return
-    # simple fallback: dark square with light TV outline
     from PIL import ImageDraw
     S = 512
     img = Image.new("RGBA", (S, S), (13, 17, 23, 255))
@@ -91,14 +90,10 @@ def make_icon(size, path):
 
 def main():
     sources = []
-    bee = parse_m3u(require("beetv.m3u"))
-    sources.append({"title": "BeeTV", "groups": grouped(bee, "BeeTV")})
-    ru = parse_m3u(require("ru.m3u"))
-    sources.append({"title": "Россия", "groups": grouped(ru, "Россия")})
-    kz = parse_m3u(require("kz.m3u"))
-    sources.append({"title": "Казахстан", "groups": grouped(kz, "Казахстан")})
-    uz = parse_m3u(require("uz.m3u"))
-    sources.append({"title": "Узбекистан", "groups": grouped(uz, "Узбекистан")})
+    sources.append({"title": "BeeTV", "groups": grouped(parse_m3u(require("beetv.m3u")), "BeeTV")})
+    sources.append({"title": "Россия", "groups": grouped(parse_m3u(require("ru.m3u")), "Россия")})
+    sources.append({"title": "Казахстан", "groups": grouped(parse_m3u(require("kz.m3u")), "Казахстан")})
+    sources.append({"title": "Узбекистан", "groups": grouped(parse_m3u(require("uz.m3u")), "Узбекистан")})
 
     data_js = "window.IPTV_DATA = " + json.dumps({"sources": sources}, ensure_ascii=False,
                                                  separators=(",", ":")) + ";\n"
