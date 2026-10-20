@@ -1,0 +1,13 @@
+# build artifacts
+build/
+dist/
+*.pyc
+__pycache__/
+
+# downloaded playlists and libraries
+data/*
+!data/.gitkeep
+
+# OS junk
+.DS_Store
+Thumbs.db

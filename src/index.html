@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8"><title>Bell.TV</title>
+<link rel="stylesheet" href="style.css"></head>
+<body>
+<div id="app">
+  <div id="side">
+    <div class="brand">
+      <div class="brand-left">
+        <svg class="brand-icon" viewBox="0 0 48 48" fill="none" stroke="#e6edf7"
+             stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="7" y="12" width="34" height="22" rx="4"></rect>
+          <path d="M24 34v6M16 40h16"></path>
+        </svg>
+        <h1>Bell<span class="tv">.TV</span></h1>
+      </div>
+      <span class="author">Nursqode</span>
+    </div>
+    <div class="sub">выберите источник</div>
+    <div id="sources"></div>
+    <div id="hint">← → источник<br>↑ ↓ канал<br>CH+ CH− листать<br>OK смотреть<br>удерживать OK — избранное<br>Back выход</div>
+  </div>
+  <div id="main">
+    <div id="list">
+      <div id="empty">Нет избранных.<br>Удерживайте OK на канале, чтобы добавить его сюда.</div>
+    </div>
+    <div id="player">
+      <video id="video" playsinline></video>
+      <div id="pchan"></div>
+      <div id="pres"></div>
+      <div id="pmsg"></div>
+    </div>
+  </div>
+</div>
+<div id="toast"></div>
+<script src="hls.min.js"></script>
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body></html>

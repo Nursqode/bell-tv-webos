@@ -1,0 +1,44 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #0b0d10; color: #e8eaed;
+  font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif; overflow: hidden; }
+#app { display: flex; height: 100%; }
+#side { width: 620px; background: #12161b; padding: 32px 26px; border-right: 2px solid #1f2630; }
+.brand { display: flex; align-items: center; justify-content: space-between; margin: 0 0 10px; }
+.brand-left { display: flex; align-items: center; gap: 16px; }
+.brand-icon { width: 54px; height: 54px; flex: none; }
+.brand h1 { font-size: 56px; margin: 0; font-weight: 600; letter-spacing: 2px; }
+.brand h1 .tv { color: #ff3b30; }
+.brand .author { color: #5f6c7c; font-size: 22px; letter-spacing: 3px; padding-bottom: 12px; }
+#side .sub { color: #7c8795; font-size: 24px; margin-bottom: 26px; }
+.src { padding: 22px 24px; border-radius: 14px; font-size: 42px; margin-bottom: 14px;
+  background: #171d24; color: #cfd6df; display: flex; justify-content: space-between; }
+.src.active { background: #2a3a53; color: #fff; outline: 3px solid #5b8bd6; }
+.src .cnt { color: #8fa3bd; font-size: 30px; }
+#hint { position: absolute; left: 26px; bottom: 18px; color: #6f7b89; font-size: 18px; line-height: 1.6; }
+#main { flex: 1; position: relative; padding: 30px 40px; overflow: hidden; }
+#list { height: 100%; overflow: hidden; position: relative; }
+.row { display: flex; align-items: center; height: 168px; padding: 0 30px; border-radius: 20px;
+  font-size: 62px; color: #c9d1db; }
+.row .num { width: 132px; color: #5f6c7c; font-size: 42px; }
+.row .fav { width: 68px; color: #ffd166; font-size: 48px; }
+.row .logo { width: 118px; height: 118px; margin-right: 30px; object-fit: contain; border-radius: 16px; background: #10151b; }
+.row .nm { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .grp { display: none; }
+.row.sel { background: #22344c; color: #fff; outline: 5px solid #6aa0e8; }
+#empty { display: none; color: #7c8795; font-size: 42px; line-height: 1.6; padding: 60px 10px; }
+#player { position: fixed; inset: 0; z-index: 50; background: #000; display: none; }
+#player.on { display: block; }
+#video { width: 100%; height: 100%; background: #000; object-fit: contain; }
+#pres { position: absolute; bottom: 30px; left: 40px; color: #9fb0c6; font-size: 32px; }
+#pchan { position: absolute; bottom: 30px; right: 40px; color: #9fb0c6; font-size: 32px;
+  text-align: right; max-width: 55%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#pmsg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  color: #9aa7b5; font-size: 38px; text-align: center; padding: 50px; }
+#pmsg.err { color: #ff8f8f; }
+#toast { position: fixed; left: 50%; bottom: 150px; transform: translateX(-50%);
+  background: #1c2633; color: #fff; padding: 20px 34px; border-radius: 16px; font-size: 34px;
+  opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 60; }
+#toast.on { opacity: 1; }
+#spin { width: 80px; height: 80px; border: 7px solid #2b3540; border-top-color: #6aa0e8;
+  border-radius: 50%; animation: sp 1s linear infinite; }
+@keyframes sp { to { transform: rotate(360deg); } }
