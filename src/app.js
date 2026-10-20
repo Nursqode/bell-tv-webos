@@ -25,6 +25,9 @@
          'https://iptv-org.github.io/iptv/countries/uz.m3u']
   };
   var state = { src: 0, idx: 0, start: 0, playing: false };
+  var QUALITY_BRIGHT_MS = 120000;
+  var qphase = 'idle';
+  var qtimer = null;
   var toastTimer = null;
   var holdTimer = null;
   var holdFired = false;
@@ -315,11 +318,13 @@
   function stop() {
     state.playing = false;
     player.className = '';
+    qphase = 'idle';
+    if (qtimer) { clearTimeout(qtimer); qtimer = null; }
     try { video.pause(); } catch (e) {}
     video.removeAttribute('src');
     try { video.load(); } catch (e) {}
     if (hls) { try { hls.destroy(); } catch (e) {} hls = null; }
-    if (pres) pres.textContent = '';
+    if (pres) { pres.textContent = ''; pres.className = ''; }
   }
 
   function fail(text) {
@@ -328,12 +333,37 @@
     pmsg.textContent = text;
   }
 
+  function setPres(text, mode) {
+    if (!pres) return;
+    pres.textContent = text || '';
+    pres.className = mode === 'final' ? 'dim' : (mode ? 'bright' : '');
+  }
+
+  function qualityFinal() {
+    qtimer = null;
+    if (!state.playing) return;
+    if (video.videoWidth) {
+      qphase = 'final';
+      updateRes();
+    } else {
+      qtimer = setTimeout(qualityFinal, 5000);
+    }
+  }
+
+  function startQuality() {
+    qphase = 'loading';
+    if (qtimer) { clearTimeout(qtimer); qtimer = null; }
+    setPres('Загружается поток…', 'bright');
+    qtimer = setTimeout(qualityFinal, QUALITY_BRIGHT_MS);
+  }
+
   function play() {
     var ch = lists[state.src][state.idx];
     if (!ch) return;
     addRecent(ch);
     state.playing = true;
     player.className = 'on';
+    startQuality();
     pmsg.className = '';
     pmsg.style.display = 'flex';
     pmsg.innerHTML = '<div id="spin"></div>';
@@ -361,9 +391,17 @@
   }
 
   function updateRes() {
-    if (!state.playing) { if (pres) pres.textContent = ''; return; }
+    if (!state.playing) { if (pres) { pres.textContent = ''; pres.className = ''; } return; }
     var w = video.videoWidth || 0, h = video.videoHeight || 0;
-    if (pres) pres.textContent = w ? ('Качество потока: ' + w + '×' + h) : 'Загрузка потока…';
+    if (qphase === 'final') {
+      setPres(w ? ('Качество: ' + w + '×' + h) : 'Загружается поток…', 'final');
+      return;
+    }
+    if (qphase === 'loading') {
+      if (!w) { setPres('Загружается поток…', 'bright'); return; }
+      qphase = 'determining';
+    }
+    setPres('Определяется качество…' + (w ? ' (' + w + '×' + h + ')' : ''), 'bright');
   }
 
   function playNext(d) {
