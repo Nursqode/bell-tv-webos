@@ -27,7 +27,7 @@ DIST = os.path.join(HERE, "dist")
 APP_ID = "tv.iptv.web"
 APP_TITLE = "Bell.TV"
 APP_VENDOR = "Nursqode"
-VERSION = "1.5.6"
+VERSION = "1.6.0"
 
 
 def parse_m3u(path):
@@ -115,6 +115,7 @@ def main():
     asset("style.css", "style.css")
     asset("app.js", "app.js")
     asset("index.html", "index.html")
+    asset("logo.svg", "logo.svg")
     hls = os.path.join(DATA, "hls.min.js")
     if os.path.exists(hls):
         shutil.copy(hls, os.path.join(app_dir, "hls.min.js"))

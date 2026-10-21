@@ -38,6 +38,7 @@ body { background: radial-gradient(ellipse at 50% 28%, #0E0E0E 0%, #000 72%); }
 #side { width: 620px; background: #050505; padding: 32px 26px; border-right: 1px solid #161616; }
 .brand { display: flex; align-items: center; justify-content: space-between; margin: 0 0 10px; }
 .brand-left { display: flex; align-items: center; gap: 16px; }
+.brand-logo { height: 68px; width: auto; display: block; }
 .brand-icon { width: 54px; height: 54px; flex: none; }
 .brand h1 { font-size: 56px; margin: 0; font-weight: 400; letter-spacing: 1px; color: #F2F5F9;
   font-family: "Manrope", "Segoe UI", Roboto, Arial, sans-serif; }
