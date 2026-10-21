@@ -27,7 +27,7 @@ DIST = os.path.join(HERE, "dist")
 APP_ID = "tv.iptv.web"
 APP_TITLE = "Bell.TV"
 APP_VENDOR = "Nursqode"
-VERSION = "1.6.1"
+VERSION = "1.6.3"
 
 
 def parse_m3u(path):
@@ -116,6 +116,7 @@ def main():
     asset("app.js", "app.js")
     asset("index.html", "index.html")
     asset("logo.svg", "logo.svg")
+    asset("splash.png", "splash.png")
     hls = os.path.join(DATA, "hls.min.js")
     if os.path.exists(hls):
         shutil.copy(hls, os.path.join(app_dir, "hls.min.js"))
@@ -137,6 +138,8 @@ def main():
     info["vendor"] = APP_VENDOR
     info["icon"] = "icon.png"
     info["largeIcon"] = "largeIcon.png"
+    info["splashBackground"] = "splash.png"
+    info["bgColor"] = "#000000"
     info["appDescription"] = "Bell.TV — IPTV-плеер для LG webOS"
     open(os.path.join(app_dir, "appinfo.json"), "w", encoding="utf-8").write(
         json.dumps(info, ensure_ascii=False, indent=2) + "\n")
