@@ -75,13 +75,13 @@ Chromium. HLS воспроизводится штатным плеером; пр
 1. Скачайте `.ipk` из раздела **[Releases](../../releases)**.
 2. Скопируйте пакет на телевизор по SSH:
    ```sh
-   scp tv.iptv.web_1.6.0_all.ipk root@192.168.1.50:/tmp/
+   scp tv.iptv.web_1.6.1_all.ipk root@192.168.1.50:/tmp/
    ```
 3. Установите через сервис установки webOS:
    ```sh
    ssh root@192.168.1.50 \
      "luna-send -n 1 -i 'luna://com.webos.appInstallService/dev/install' \
-      '{\"id\":\"com.ares.defaultName\",\"ipkUrl\":\"/tmp/tv.iptv.web_1.6.0_all.ipk\",\"subscribe\":true}'"
+      '{\"id\":\"com.ares.defaultName\",\"ipkUrl\":\"/tmp/tv.iptv.web_1.6.1_all.ipk\",\"subscribe\":true}'"
    ```
 4. Приложение появится в списке приложений (Home → Apps) под именем **Bell.TV**.
 
@@ -95,7 +95,7 @@ Chromium. HLS воспроизводится штатным плеером; пр
    ```sh
    npm install -g @webos-tools/cli
    ares-setup-device            # добавьте ТВ (host, порт 9922, пользователь prisoner)
-   ares-install --device <имя> tv.iptv.web_1.6.0_all.ipk
+   ares-install --device <имя> tv.iptv.web_1.6.1_all.ipk
    ```
 3. Подойдёт и [webOS Dev Manager](https://github.com/webosbrew/dev-manager-desktop):
    добавить устройство → Apps → перетащить `.ipk`.
@@ -140,6 +140,16 @@ dist/              готовые .ipk (не коммитится)
 ```
 
 ## Источники и автообновление
+
+Дополнительно к списку каналов приложение собирает **резервные ссылки** на те же каналы
+из нескольких публичных плейлистов и, если поток не запускается, автоматически пробует
+следующий вариант (до 5 адресов на канал).
+
+Для России резервные ссылки берутся из:
+- [Romaxa55/world_ip_tv](https://github.com/Romaxa55/world_ip_tv) (проверенные рабочие);
+- [smolnp/IPTVru](https://github.com/smolnp/IPTVru) — `IPTVstable.m3u8`, `IPTVru.m3u`, `IPTVmir.m3u8`;
+- [iptv-org/iptv](https://github.com/iptv-org/iptv);
+
 
 | Источник | Откуда | Обновление |
 |---|---|---|

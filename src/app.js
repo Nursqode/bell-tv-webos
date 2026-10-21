@@ -13,21 +13,25 @@
   var ROWS = 6;
   var FAV_KEY = 'iptv-favs-v1';
   var REC_KEY = 'iptv-recents-v1';
-  var UPD_KEY = 'iptv-urls-v1';
+  var UPD_KEY = 'iptv-urls-v2';
   var UPD_TTL = 24 * 3600 * 1000;
   var SRC_KEY = { 'BeeTV': 'bee', 'Россия': 'ru', 'Казахстан': 'kz', 'Узбекистан': 'uz' };
   var FEEDS = {
     ru: ['https://raw.githubusercontent.com/Romaxa55/world_ip_tv/master/output/ru.m3u',
+         'https://raw.githubusercontent.com/smolnp/IPTVru/gh-pages/IPTVstable.m3u8',
+         'https://raw.githubusercontent.com/smolnp/IPTVru/gh-pages/IPTVru.m3u',
+         'https://raw.githubusercontent.com/smolnp/IPTVru/gh-pages/IPTVmir.m3u8',
          'https://iptv-org.github.io/iptv/countries/ru.m3u'],
     kz: ['https://raw.githubusercontent.com/Romaxa55/world_ip_tv/master/output/kz.m3u',
          'https://iptv-org.github.io/iptv/countries/kz.m3u'],
     uz: ['https://raw.githubusercontent.com/Romaxa55/world_ip_tv/master/output/uz.m3u',
          'https://iptv-org.github.io/iptv/countries/uz.m3u']
   };
-  var state = { src: 0, idx: 0, start: 0, playing: false };
+  var state = { src: 0, idx: 0, start: 0, playing: false, streaming: false };
   var QUALITY_BRIGHT_MS = 120000;
   var qphase = 'idle';
   var qtimer = null;
+  var playTry = { ch: null, cands: [], idx: 0, stall: null };
   var toastTimer = null;
   var holdTimer = null;
   var holdFired = false;
@@ -103,30 +107,44 @@
     return map;
   }
 
-  function applyOverrides(cache) {
+  var URLMAP = {};
+
+  function buildUrlMap(cache) {
+    URLMAP = {};
     if (!cache || !cache.urls) return 0;
-    var changed = 0;
-    D.sources.forEach(function (s) {
-      var ov = cache.urls[srcKeyFor(s.title)];
-      if (!ov) return;
-      s.groups.forEach(function (g) {
-        g.ch.forEach(function (c) {
-          var n = normName(c[0]);
-          if (n && ov[n] && ov[n] !== c[1]) { c[1] = ov[n]; changed++; }
-        });
+    var total = 0;
+    Object.keys(cache.urls).forEach(function (key) {
+      var ov = cache.urls[key];
+      var map = {};
+      Object.keys(ov).forEach(function (n) {
+        var v = ov[n];
+        map[n] = Array.isArray(v) ? v.slice() : [v];
+        total += map[n].length;
       });
+      URLMAP[key] = map;
     });
-    return changed;
+    return total;
   }
 
   var cached = loadCache();
-  var appliedOnStart = applyOverrides(cached);
+  var appliedOnStart = buildUrlMap(cached);
 
   function flat(source, title) {
+    var srcKey = srcKeyFor(title);
+    var ov = URLMAP[srcKey] || {};
     var out = [];
     source.groups.forEach(function (g) {
       g.ch.forEach(function (c) {
-        out.push({ key: makeKey(title, c[0]), name: c[0], url: c[1], logo: c[2], group: g.title });
+        var n = normName(c[0]);
+        var cands = (ov[n] && ov[n].length) ? ov[n] : null;
+        out.push({
+          key: makeKey(title, c[0]),
+          name: c[0],
+          url: cands ? cands[0] : c[1],
+          alt: cands ? cands.slice(1) : [],
+          logo: c[2],
+          group: g.title
+        });
       });
     });
     return out;
@@ -317,9 +335,12 @@
 
   function stop() {
     state.playing = false;
+    state.streaming = false;
     player.className = '';
     qphase = 'idle';
     if (qtimer) { clearTimeout(qtimer); qtimer = null; }
+    if (playTry.stall) { clearTimeout(playTry.stall); playTry.stall = null; }
+    playTry.ch = null;
     try { video.pause(); } catch (e) {}
     video.removeAttribute('src');
     try { video.load(); } catch (e) {}
@@ -357,6 +378,64 @@
     qtimer = setTimeout(qualityFinal, QUALITY_BRIGHT_MS);
   }
 
+  function playCandidates() {
+    if (!state.playing || !playTry.ch) return;
+    var url = playTry.cands[playTry.idx];
+    if (!url) {
+      fail('Не удалось воспроизвести поток (все варианты).\nBack — вернуться к списку.');
+      return;
+    }
+    state.streaming = false;
+    pmsg.className = '';
+    pmsg.style.display = 'flex';
+    pmsg.innerHTML = '<div id="spin"></div>';
+
+    video.onplaying = function () {
+      state.streaming = true;
+      pmsg.style.display = 'none';
+      if (playTry.stall) { clearTimeout(playTry.stall); playTry.stall = null; }
+      updateRes();
+    };
+    video.onloadedmetadata = function () { updateRes(); };
+    video.onerror = function () {
+      if (!state.playing) return;
+      nextStream();
+    };
+
+    if (hls) { try { hls.destroy(); } catch (e) {} hls = null; }
+    if (video.canPlayType && video.canPlayType('application/vnd.apple.mpegurl') === '' &&
+        window.Hls && window.Hls.isSupported()) {
+      hls = new window.Hls({ enableWorker: false });
+      hls.loadSource(url);
+      hls.attachMedia(video);
+      hls.on(window.Hls.Events.ERROR, function (e, data) {
+        if (data && data.fatal) nextStream();
+      });
+    } else {
+      video.src = url;
+      video.load();
+      var p = video.play();
+      if (p && p.catch) { p.catch(function () {}); }
+    }
+
+    if (playTry.stall) clearTimeout(playTry.stall);
+    playTry.stall = setTimeout(function () {
+      playTry.stall = null;
+      if (state.playing && !state.streaming) nextStream();
+    }, 9000);
+  }
+
+  function nextStream() {
+    if (!state.playing || !playTry.ch) return;
+    playTry.idx++;
+    if (playTry.idx < playTry.cands.length) {
+      if (playTry.idx === 1) toast('Пробуем резервный поток…');
+      playCandidates();
+    } else {
+      fail('Не удалось воспроизвести ни один из ' + playTry.cands.length + ' потоков.\nBack — вернуться к списку.');
+    }
+  }
+
   function play() {
     var ch = lists[state.src][state.idx];
     if (!ch) return;
@@ -364,30 +443,10 @@
     state.playing = true;
     player.className = 'on';
     startQuality();
-    pmsg.className = '';
-    pmsg.style.display = 'flex';
-    pmsg.innerHTML = '<div id="spin"></div>';
-    video.src = ch.url;
-    video.load();
-    var p = video.play();
-    if (p && p.catch) { p.catch(function () {}); }
-    video.onplaying = function () { pmsg.style.display = 'none'; updateRes(); };
-    video.onloadedmetadata = function () { updateRes(); };
-    video.onerror = function () {
-      if (!state.playing) return;
-      var c = video.error ? video.error.code : '?';
-      fail('Не удалось воспроизвести поток (код ' + c + ').\nBack — вернуться к списку.');
-    };
-    if (video.canPlayType && video.canPlayType('application/vnd.apple.mpegurl') === '' &&
-        window.Hls && window.Hls.isSupported()) {
-      if (hls) { try { hls.destroy(); } catch (e) {} }
-      hls = new window.Hls({ enableWorker: false });
-      hls.loadSource(ch.url);
-      hls.attachMedia(video);
-      hls.on(window.Hls.Events.ERROR, function (e, data) {
-        if (data && data.fatal) fail('Поток недоступен (' + (data.details || data.type) + ').\nBack — вернуться.');
-      });
-    }
+    playTry.ch = ch;
+    playTry.cands = [ch.url].concat(ch.alt || []);
+    playTry.idx = 0;
+    playCandidates();
   }
 
   function updateRes() {
@@ -491,27 +550,47 @@
     });
   }
 
-  function fetchFirst(key) {
+  function fetchAll(key) {
     var urls = FEEDS[key];
-    function attempt(i) {
-      if (i >= urls.length) return Promise.resolve(null);
+    var merged = {};
+    function step(i) {
+      if (i >= urls.length) return Promise.resolve(merged);
       return fetchText(urls[i], 4000).then(function (text) {
         var map = parseM3U(text);
-        return Object.keys(map).length ? map : attempt(i + 1);
-      }).catch(function () { return attempt(i + 1); });
+        Object.keys(map).forEach(function (n) {
+          if (!merged[n]) merged[n] = [];
+          if (merged[n].length < 5 && merged[n].indexOf(map[n]) === -1) merged[n].push(map[n]);
+        });
+      }).catch(function () {}).then(function () { return step(i + 1); });
     }
-    return attempt(0);
+    return step(0);
+  }
+
+  function debugSample() {
+    var out = { ru: 0, kz: 0, uz: 0, bee: 0, withAlt: 0, examples: [] };
+    allChannels.forEach(function (c) {
+      var k = c.key.split('|')[0];
+      if (out[k] === undefined) out[k] = 0;
+      out[k]++;
+      if (c.alt && c.alt.length) {
+        out.withAlt++;
+        if (out.examples.length < 6) out.examples.push(c.name + ' → ' + (1 + c.alt.length) + ' потоков');
+      }
+    });
+    return out;
   }
 
   function refresh() {
     var keys = Object.keys(FEEDS);
     Promise.all(keys.map(function (key) {
-      return fetchFirst(key).then(function (map) { return { key: key, map: map }; });
+      return fetchAll(key).then(function (map) { return { key: key, map: map }; });
     })).then(function (res) {
       var urls = {};
       var okCount = 0;
+      var names = 0;
       res.forEach(function (r) {
-        if (r.map) { urls[r.key] = r.map; okCount++; }
+        var n = r.map ? Object.keys(r.map).length : 0;
+        if (n) { urls[r.key] = r.map; okCount++; names += n; }
       });
       if (!okCount) {
         window.__iptvUpdate = { status: 'fail', ts: Date.now() };
@@ -519,18 +598,19 @@
       }
       var newCache = { ts: Date.now(), urls: urls };
       try { localStorage.setItem(UPD_KEY, JSON.stringify(newCache)); } catch (e) {}
-      var changed = applyOverrides(newCache);
+      buildUrlMap(newCache);
       rebuildAllChannels();
       rebuild();
       renderList();
-      window.__iptvUpdate = { status: 'ok', ts: newCache.ts, feeds: okCount, changed: changed };
+      window.__iptvUpdate = { status: 'ok', ts: newCache.ts, feeds: okCount, names: names };
+      window.__iptvDebug = debugSample();
     }).catch(function (err) {
       window.__iptvUpdate = { status: 'error', error: String(err) };
     });
   }
 
   if (cached && cached.ts && (Date.now() - cached.ts) < UPD_TTL) {
-    window.__iptvUpdate = { status: 'cached', ts: cached.ts, changed: appliedOnStart };
+    window.__iptvUpdate = { status: 'cached', ts: cached.ts, cands: appliedOnStart };
   } else {
     window.__iptvUpdate = { status: 'pending' };
     setTimeout(refresh, 1200);
@@ -538,4 +618,5 @@
 
   rebuild();
   renderList();
+  window.__iptvDebug = debugSample();
 })();
